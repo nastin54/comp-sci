@@ -1,0 +1,138 @@
+class Graph:
+    def __init__(self):
+        self.graph = {}
+
+    def add_member(self, name, age, interests):
+        self.graph[name] = {'age': age, 'interests': interests, 'connections': {}}
+
+    def remove_member(self, name):
+        if name in self.graph:
+            self.graph.pop(name)
+            for member in self.graph:
+                if name in self.graph[member]['connections']:
+                    self.graph[member]['connections'].pop(name)
+
+    def add_relationship(self, member1, member2, weight=1):
+        if member1 in self.graph and member2 in self.graph:
+            self.graph[member1]['connections'][member2] = weight
+            self.graph[member2]['connections'][member1] = weight
+
+    def remove_relationship(self, member1, member2):
+        if member1 in self.graph and member2 in self.graph:
+            if member2 in self.graph[member1]['connections']:
+                self.graph[member1]['connections'].pop(member2)
+            if member1 in self.graph[member2]['connections']:
+                self.graph[member2]['connections'].pop(member1)
+
+    def find_direct_friends(self, member):
+        if member in self.graph:
+            return list(self.graph[member]['connections'].keys())
+        return []
+
+    def find_mutual_friends(self, member1, member2):
+        if member1 in self.graph and member2 in self.graph:
+            friends1 = set(self.graph[member1]['connections'].keys())
+            friends2 = set(self.graph[member2]['connections'].keys())
+            return list(friends1.intersection(friends2))
+        return []
+
+    def suggest_friends(self, member):
+        if member not in self.graph:
+            return []
+        direct_friends = set(self.graph[member]['connections'].keys())
+        suggested_friends = set()
+
+        for friend in direct_friends:
+            friend_friends = set(self.graph[friend]['connections'].keys())
+            suggested_friends.update(friend_friends - direct_friends - {member})
+        return list(suggested_friends)
+
+    def find_path(self, start, end, path=[]):
+        path = path + [start]
+        if start == end:
+            return path
+        if start not in self.graph:
+            return None
+        for node in self.graph[start]['connections']:
+            if node not in path:
+                newpath = self.find_path(node, end, path)
+                if newpath:
+                    return newpath
+        return None
+
+    def find_all_paths(self, start, end, path=[]):
+        path = path + [start]
+        if start == end:
+            return [path]
+        if start not in self.graph:
+            return []
+        paths = []
+        for node in self.graph[start]['connections']:
+            if node not in path:
+                newpaths = self.find_all_paths(node, end, path)
+                paths.extend(newpaths)
+        return paths
+
+    def find_shortest_path(self, start, end, path=[]):
+        path = path + [start]
+        if start == end:
+            return path
+        if start not in self.graph:
+            return None
+        shortest = None
+        for node in self.graph[start]['connections']:
+            if node not in path:
+                newpath = self.find_shortest_path(node, end, path)
+                if newpath and (shortest is None or len(newpath) < len(shortest)):
+                    shortest = newpath
+        return shortest
+
+    def degrees_of_separation(self, member1, member2):
+        path = self.find_shortest_path(member1, member2)
+        if path:
+            return len(path) - 1
+        return None
+
+    def most_connected_members(self):
+        max_connections = 0
+        most_connected = []
+
+        for member, data in self.graph.items():
+            num_connections = len(data['connections'])
+            if num_connections > max_connections:
+                max_connections = num_connections
+                most_connected = [member]
+            elif num_connections == max_connections:
+                most_connected.append(member)
+        return most_connected, max_connections
+
+social_network = Graph()
+social_network.add_member('Eman', 19, ['Reading', 'Studying'])
+social_network.add_member('Sara', 17, ['Cooking', 'Dancing'])
+social_network.add_member('Charles', 17, ['Swimming', 'Cycling'])
+social_network.add_member('Ana', 19, ['Painting', 'Running'])
+
+social_network.add_relationship('Eman', 'Sara', weight=3)
+social_network.add_relationship('Sara', 'Charles', weight=2)
+social_network.add_relationship('Charles', 'Ana', weight=4)
+
+
+print("Graph structure:")
+for member in social_network.graph.items():
+    print(f"{member}: Age: {'age'}, Interests: {'interests'}, Connections: {'connections'}")
+
+print("Direct friends of Ana:")
+print(social_network.find_direct_friends('Ana'))
+
+print("Mutual friends between Eman and Sara:")
+print(social_network.find_mutual_friends('Eman', 'Sara'))
+
+print("Friend suggestions for Charles:")
+print(social_network.suggest_friends('Charles'))
+
+print("Degrees of separation between Ana and Sara:")
+print(social_network.degrees_of_separation('Ana', 'Sara'))
+
+print("Most connected members:")
+most_connected, max_connections = social_network.most_connected_members()
+print(f"Most connected members are: {most_connected} with {max_connections} connections")
