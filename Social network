@@ -34,7 +34,8 @@ class Graph:
             friends1 = set(self.graph[member1]['connections'].keys())
             friends2 = set(self.graph[member2]['connections'].keys())
             return list(friends1.intersection(friends2))
-        return []
+        return 
+#Eman is the best person in the world
 
     def suggest_friends(self, member):
         if member not in self.graph:
